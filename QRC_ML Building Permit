@@ -1,0 +1,1012 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/mauipom11/web_holder/blob/main/QRC_ML%20Building%20Permit\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "\n",
+        "# ! pip install [https://github.com/pandas-profiling/pandas-profiling/archive/master.zip](https://github.com/pandas-profiling/pandas-profiling/archive/master.zip)\n",
+        "# ! pip install plotly==5.13.0\n",
+        "# !pip install pandas-profiling\n",
+        "# ! pip install https://github.com/pandas-profiling/pandas-profiling/archive/master.zip\n",
+        "# !pip install ipywidgets"
+      ],
+      "metadata": {
+        "id": "kqfQfRytUtl9"
+      },
+      "execution_count": 12,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# QRC Machine Learning Fundamentals\n",
+        "\n",
+        "## Jupyter Notebook Assessment 2\n",
+        "\n",
+        "In this challenge, you have a dataset of building permits in San Francisco. All permitted construction work are subject to inspection by authorized Building and Safety inspectors. The permit applicant notifies Building and Safety when the work is ready for inspection. Common items inspected include foundation excavations, concrete work, wood framing, ventilation equipment, plumbing, electrical, and so forth. Upon completion, there will be a final inspection and approval of the completed project. You can read [more about the dataset here](https://www.kaggle.com/datasets/aparnashastry/building-permit-applications-data)\n",
+        "\n",
+        "\n",
+        "For this exercise, you are required to show your code and document the changes you have done to the dataset using the Datasheet for Dataset Template. The template can be found in [Moodle](https://qrc-elearning.mywisenet.com.au/))\n",
+        "\n",
+        "You are required to complete all the task below and remember you can always discuss with your tutor if you would like to bounce some ideas\n",
+        "\n",
+        "##Learning outcome\n",
+        "\n",
+        "Use machine learning libraries (pandas) to clean the dataset and to document the changes you have made to make the dataset fair, so that it can be used to train for a machine learning algorithim.\n",
+        "\n",
+        "## Tasks\n",
+        "\n",
+        "1. Import pandas package\n",
+        "1. Load the dataset (saved as `Building_Permits.csv`) into a DataFrame\n",
+        "1. Preview the DataFrame to see the names of the columns\n",
+        "1. Check the number of rows in the dataset\n",
+        "1. Check the types of each column\n",
+        "1. Find out how many missing values each column has\n",
+        "1. Identify if any columns may be 'Sensitive features' (see  below) and list them below\n",
+        "1. Document which features are sensitive, and your reasoning why⚠️\n",
+        "1. Drop any sensitive features from a DataFrame⚠️\n",
+        "1. Drop any columns that are not useful / significant, and document your reason why⚠️\n",
+        "1.(Optional) How would you populate the columns with missing value. Document it down or alternatively show it in code on how you'll fill in the missing values\n",
+        "⚠️\n",
+        "#Submission Details ⚠️\n",
+        "You are required to submit both the code and also the documentation to Moodle.⚠️\n",
+        "\n",
+        "\n",
+        "\n",
+        "**Sensitive features**  \n",
+        "*Decisions made by computers after a machine-learning process may be considered unfair if they were based on variables considered sensitive. Examples of these kinds of variable include gender, ethnicity, sexual orientation, disability and more.* - [Fairness (machine learning), Wikipedia](https://en.wikipedia.org/wiki/Fairness_(machine_learning)) ⚠️\n"
+      ],
+      "metadata": {
+        "id": "m3LjUxPiwk_2"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Import necessary libraries\n",
+        "import numpy as np  # Import NumPy for numerical operations\n",
+        "import pandas as pd  # Import Pandas for data manipulation and analysis\n",
+        "from pandas_profiling import ProfileReport  # Generate automated exploratory data analysis reports\n",
+        "\n",
+        "# Import machine learning models from scikit-learn\n",
+        "from sklearn.svm import SVC  # Support Vector Classifier\n",
+        "from sklearn.neighbors import KNeighborsClassifier  # K-Nearest Neighbors Classifier\n",
+        "from sklearn.linear_model import LogisticRegression  # Logistic Regression model\n",
+        "\n",
+        "# Import utilities for data preprocessing and model evaluation\n",
+        "from sklearn.model_selection import train_test_split  # Split dataset into training and testing sets\n",
+        "from sklearn.preprocessing import StandardScaler  # Standardize features by removing the mean and scaling to unit variance\n",
+        "\n",
+        "# Import metrics for evaluating classification models\n",
+        "from sklearn.metrics import accuracy_score, confusion_matrix, classification_report\n",
+        "# accuracy_score: Computes accuracy of predictions\n",
+        "# confusion_matrix: Generates confusion matrix for classification results\n",
+        "# classification_report: Provides precision, recall, and F1-score for each class\n"
+      ],
+      "metadata": {
+        "id": "_i6d2xLmDPSa"
+      },
+      "execution_count": 13,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Import necessary libraries\n",
+        "import os  # Provides functions for interacting with the operating system\n",
+        "import matplotlib.pyplot as plt  # Used for creating static, animated, and interactive visualizations\n",
+        "import seaborn as sns  # High-level data visualization library based on Matplotlib\n",
+        "\n",
+        "# Duplicate import of Matplotlib (this line is redundant)\n",
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "# Define the file name for the dataset\n",
+        "file_name = \"Building_Permits.csv\"\n",
+        "\n",
+        "# Define the URL from which the dataset can be downloaded\n",
+        "file_url = \"https://github.com/martinpella/acamica/raw/master/Building_Permits.csv\"\n",
+        "\n",
+        "# Check if the file already exists in the current directory\n",
+        "if not os.path.exists(file_name):\n",
+        "    # If the file does not exist, download it using the system's `wget` command\n",
+        "    os.system(f\"wget {file_url}\")\n",
+        "    print(\"File downloaded.\")  # Notify the user that the file has been downloaded\n",
+        "else:\n",
+        "    # If the file already exists, notify the user\n",
+        "    print(\"File already exists.\")\n",
+        "\n",
+        "# Define the expected path where the data file should be located\n",
+        "data_file_path = '/content/Building_Permits.csv'  # (This path is specific to environments like Google Colab)\n",
+        "\n",
+        "# Initialize and Keep the original data as a backup!\n",
+        "original_data_frame = pd.read_csv(data_file_path)  # ⚠️ Keep the original data as a backup!⚠️\n",
+        "original_data_frame.head()\n",
+        "df = original_data_frame.copy()\n",
+        "# We can play with df instead ⚠️ Its shorter and we use it for feature engineering ⚠️"
+      ],
+      "metadata": {
+        "id": "ju46RcR6KrDC",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "aca71e09-ce89-4e16-f3d0-56c73a64871f"
+      },
+      "execution_count": 14,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "File already exists.\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "<ipython-input-14-8afed96266c4>:28: DtypeWarning: Columns (22,32) have mixed types. Specify dtype option on import or set low_memory=False.\n",
+            "  original_data_frame = pd.read_csv(data_file_path)  # ⚠️ Keep the original data as a backup!⚠️\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Lets look at the columns\n",
+        "print(f\"Theres: {len(df.columns)} here:\")\n",
+        "df.columns\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "-gVMo-ZFptCT",
+        "outputId": "6a2beb5f-5af7-4477-9b5c-587034712246"
+      },
+      "execution_count": 15,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Theres: 43 here:\n"
+          ]
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "Index(['Permit Number', 'Permit Type', 'Permit Type Definition',\n",
+              "       'Permit Creation Date', 'Block', 'Lot', 'Street Number',\n",
+              "       'Street Number Suffix', 'Street Name', 'Street Suffix', 'Unit',\n",
+              "       'Unit Suffix', 'Description', 'Current Status', 'Current Status Date',\n",
+              "       'Filed Date', 'Issued Date', 'Completed Date',\n",
+              "       'First Construction Document Date', 'Structural Notification',\n",
+              "       'Number of Existing Stories', 'Number of Proposed Stories',\n",
+              "       'Voluntary Soft-Story Retrofit', 'Fire Only Permit',\n",
+              "       'Permit Expiration Date', 'Estimated Cost', 'Revised Cost',\n",
+              "       'Existing Use', 'Existing Units', 'Proposed Use', 'Proposed Units',\n",
+              "       'Plansets', 'TIDF Compliance', 'Existing Construction Type',\n",
+              "       'Existing Construction Type Description', 'Proposed Construction Type',\n",
+              "       'Proposed Construction Type Description', 'Site Permit',\n",
+              "       'Supervisor District', 'Neighborhoods - Analysis Boundaries', 'Zipcode',\n",
+              "       'Location', 'Record ID'],\n",
+              "      dtype='object')"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 15
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Here we can get a look into our missing values, Datatypes, column count and names. To see we use:\n",
+        "df.info()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "9Us_6PYEhVSC",
+        "outputId": "83600405-72fe-40a7-d68c-197b11a7bab5"
+      },
+      "execution_count": 16,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "<class 'pandas.core.frame.DataFrame'>\n",
+            "RangeIndex: 198900 entries, 0 to 198899\n",
+            "Data columns (total 43 columns):\n",
+            " #   Column                                  Non-Null Count   Dtype  \n",
+            "---  ------                                  --------------   -----  \n",
+            " 0   Permit Number                           198900 non-null  object \n",
+            " 1   Permit Type                             198900 non-null  int64  \n",
+            " 2   Permit Type Definition                  198900 non-null  object \n",
+            " 3   Permit Creation Date                    198900 non-null  object \n",
+            " 4   Block                                   198900 non-null  object \n",
+            " 5   Lot                                     198900 non-null  object \n",
+            " 6   Street Number                           198900 non-null  int64  \n",
+            " 7   Street Number Suffix                    2216 non-null    object \n",
+            " 8   Street Name                             198900 non-null  object \n",
+            " 9   Street Suffix                           196132 non-null  object \n",
+            " 10  Unit                                    29479 non-null   float64\n",
+            " 11  Unit Suffix                             1961 non-null    object \n",
+            " 12  Description                             198610 non-null  object \n",
+            " 13  Current Status                          198900 non-null  object \n",
+            " 14  Current Status Date                     198900 non-null  object \n",
+            " 15  Filed Date                              198900 non-null  object \n",
+            " 16  Issued Date                             183960 non-null  object \n",
+            " 17  Completed Date                          97191 non-null   object \n",
+            " 18  First Construction Document Date        183954 non-null  object \n",
+            " 19  Structural Notification                 6922 non-null    object \n",
+            " 20  Number of Existing Stories              156116 non-null  float64\n",
+            " 21  Number of Proposed Stories              156032 non-null  float64\n",
+            " 22  Voluntary Soft-Story Retrofit           35 non-null      object \n",
+            " 23  Fire Only Permit                        18827 non-null   object \n",
+            " 24  Permit Expiration Date                  147020 non-null  object \n",
+            " 25  Estimated Cost                          160834 non-null  float64\n",
+            " 26  Revised Cost                            192834 non-null  float64\n",
+            " 27  Existing Use                            157786 non-null  object \n",
+            " 28  Existing Units                          147362 non-null  float64\n",
+            " 29  Proposed Use                            156461 non-null  object \n",
+            " 30  Proposed Units                          147989 non-null  float64\n",
+            " 31  Plansets                                161591 non-null  float64\n",
+            " 32  TIDF Compliance                         2 non-null       object \n",
+            " 33  Existing Construction Type              155534 non-null  float64\n",
+            " 34  Existing Construction Type Description  155534 non-null  object \n",
+            " 35  Proposed Construction Type              155738 non-null  float64\n",
+            " 36  Proposed Construction Type Description  155738 non-null  object \n",
+            " 37  Site Permit                             5359 non-null    object \n",
+            " 38  Supervisor District                     197183 non-null  float64\n",
+            " 39  Neighborhoods - Analysis Boundaries     197175 non-null  object \n",
+            " 40  Zipcode                                 197184 non-null  float64\n",
+            " 41  Location                                197200 non-null  object \n",
+            " 42  Record ID                               198900 non-null  int64  \n",
+            "dtypes: float64(12), int64(3), object(28)\n",
+            "memory usage: 65.3+ MB\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#We can check the missing values using:\n",
+        "df.isnull().sum()\n"
+      ],
+      "metadata": {
+        "id": "xBKhd87KiTRc"
+      },
+      "execution_count": 25,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Uncomment this stuff to  see whats inside\n",
+        "# details = ProfileReport(df)\n",
+        "# details.to_notebook_iframe()"
+      ],
+      "metadata": {
+        "id": "jfi4QQjKBEUj"
+      },
+      "execution_count": 18,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Lets chop off some sensitive data shall we, first lets group these into suittable lists:\n",
+        "Keep = [  # ✅ Important features to retain\n",
+        "    \"Number of Existing Stories\",\n",
+        "    \"Existing Use\",  # 🏢 Convert categorical values into numbers\n",
+        "    \"Existing Units\",  # 🔢 Discrete numbers\n",
+        "    \"Existing Construction Type\",  # 🔢 Discrete numbers\n",
+        "\n",
+        "    \"Filed Date\",  # 📆 Convert into numeric format\n",
+        "    \"Issued Date\",  # 📆 Convert into numeric format\n",
+        "    \"Completed Date\",  # 📆 Convert into numeric format\n",
+        "\n",
+        "    \"Permit Type\",  # 🏗️ Key identifier for type of permit\n",
+        "]\n",
+        "\n",
+        "Drop = [  # ❌ Unnecessary or redundant columns\n",
+        "    \"Street Number\",  # 📍 Sensitive data\n",
+        "    \"Street Number Suffix\",  # 📍 Sensitive data\n",
+        "    \"Street Name\",  # 📍 Sensitive data\n",
+        "    \"Street Suffix\",  # 📍 Sensitive data\n",
+        "    \"Unit\",  # 📍 Sensitive data\n",
+        "    \"Unit Suffix\",  # 📍 Sensitive data\n",
+        "    \"Location\",  # 📍 Sensitive data\n",
+        "    \"Zipcode\",  # 📍 Sensitive data\n",
+        "    \"Block\",  # 📍 Sensitive data\n",
+        "    \"Lot\",  # 📍 Sensitive data\n",
+        "    \"Neighborhoods - Analysis Boundaries\",  # 📍 Sensitive data\n",
+        "    \"Supervisor District\",  # 🏙️ We already have numerical identifiers\n",
+        "    \"TIDF Compliance\",  # 🏛️ Policy-based, not needed\n",
+        "    \"Number of Proposed Stories\",  # 🏗️ Redundant with existing stories\n",
+        "    \"Proposed Use\",  # 🏗️ Redundant with existing use\n",
+        "    \"Proposed Units\",  # 🏗️ Redundant with existing units\n",
+        "    \"Proposed Construction Type\",  # 🏗️ Redundant with existing construction type\n",
+        "    \"Proposed Construction Type Description\",  # 🏗️ Redundant with existing construction type\n",
+        "    \"Permit Number\",  # 🔢 Unique ID, not useful for modeling\n",
+        "    \"Permit Type Definition\",  # 🏗️ Already have \"Permit Type\"\n",
+        "    \"Structural Notification\",  # ⚠️ Not needed\n",
+        "    \"Voluntary Soft-Story Retrofit\",  # ⚠️ Not needed\n",
+        "    \"Record ID\",  # 🔢 Unique ID, not useful\n",
+        "    \"Site Permit\",  # ❌ Too many missing values\n",
+        "]\n",
+        "\n",
+        "hold = [  # ⏳ Might be useful later, but not immediately\n",
+        "    \"Permit Type\",  # 🏗️ Hi my name’s Freddy!\n",
+        "    \"Permit Type Definition\",  # 🤖 You don’t need me right now because Freddy’s here!\n",
+        "    \"Description\",  # ✏️ Random & unnecessary unless needed later\n",
+        "    \"Existing Construction Type Description\",  # 🏗️ We already have the numeric form, but keeping just in case\n",
+        "\n",
+        "    \"Supervisor District\",  # 🏙️ Like a suburb identifier, but we have corresponding numbers\n",
+        "\n",
+        "    \"Permit Creation Date\",  # 📆 Convert into numeric format\n",
+        "    \"First Construction Document Date\",  # 📆 Convert into numeric format\n",
+        "\n",
+        "    \"Current Status\",  # 📊 Convert into numbers\n",
+        "    \"Current Status Date\",  # 📊 Convert into numbers\n",
+        "\n",
+        "    \"Fire Only Permit\",  # 🔥 Boolean (True/False)\n",
+        "    \"Permit Expiration Date\",  # 📆 Convert into numeric format\n",
+        "\n",
+        "    \"Estimated Cost\",  # 💰 Regression problem\n",
+        "    \"Revised Cost\",  # 💰 Regression problem\n",
+        "\n",
+        "    \"Plansets\",  # 📄 Drop 0.0 values\n",
+        "    \"Site Permit\",  # ❌ Many missing values\n",
+        "\n",
+        "    \"Number of Existing Stories\",\n",
+        "    \"Existing Use\",  # 📊 Convert to numbers\n",
+        "    \"Existing Units\",  # 🔢 Discrete numbers\n",
+        "    \"Existing Construction Type\",  # 🔢 Discrete numbers\n",
+        "]\n",
+        "\n",
+        "# Creating the refined DataFrame\n",
+        "refined_data_frame = df[[\n",
+        "\n",
+        "\n",
+        "    \"Filed Date\",  # 📆 Convert to numbers\n",
+        "    \"Issued Date\",  # 📆 Convert to numbers\n",
+        "    \"Completed Date\",  # 📆 Convert to numbers\n",
+        "\n",
+        "    \"Permit Type\",  # 🏗️ Key category\n",
+        "]].copy()\n",
+        "\n",
+        "features = df[[\n",
+        "\n",
+        "    \"Estimated Cost\",  # 💰 Regression problem\n",
+        "    \"Permit Type\",  # 🏗️ Key category\n",
+        "    \"Number of Existing Stories\",\n",
+        "    \"Existing Use\",  # 🏢 Convert categorical values into numbers\n",
+        "    \"Existing Units\",  # 🔢 Discrete numbers\n",
+        "    \"Existing Construction Type\",  # 🔢 Discrete numbers\n",
+        "    \"Permit Type\",  # 🏗️ Key identifier for type of permit\n",
+        "             ]]\n",
+        ""
+      ],
+      "metadata": {
+        "id": "6gBCk9G3ij1a"
+      },
+      "execution_count": 19,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "![image.png](data:image/png;base64,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)"
+      ],
+      "metadata": {
+        "id": "xPZXksFxhy88"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        " chose these features to drop because it could be considered sentitave infomation the curators may not be willing to share. It is also not needed for our model to learn from."
+      ],
+      "metadata": {
+        "id": "Q1tLcHUPh3Zs"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "I dropped the other columns because they are reduntand for training until we need fine tuneing, some we wont need, some we might need and we can focus on the glaring features that we do need and slowly add in our seasonings and spices if we need extra flavour."
+      ],
+      "metadata": {
+        "id": "n-7FrLHPiNZE"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# details = ProfileReport(refined_data_frame)\n",
+        "# details.to_notebook_iframe()"
+      ],
+      "metadata": {
+        "id": "3jFn4avT2mAJ"
+      },
+      "execution_count": 20,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Now that we can have a better look at our refined data:"
+      ],
+      "metadata": {
+        "id": "ZcIdvMzncV1k"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "refined_data_frame.info()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "xE4IkiOIcNhE",
+        "outputId": "41c06c54-1cc7-45fa-d555-b9e9d0d40f72"
+      },
+      "execution_count": 21,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "<class 'pandas.core.frame.DataFrame'>\n",
+            "RangeIndex: 198900 entries, 0 to 198899\n",
+            "Data columns (total 4 columns):\n",
+            " #   Column          Non-Null Count   Dtype \n",
+            "---  ------          --------------   ----- \n",
+            " 0   Filed Date      198900 non-null  object\n",
+            " 1   Issued Date     183960 non-null  object\n",
+            " 2   Completed Date  97191 non-null   object\n",
+            " 3   Permit Type     198900 non-null  int64 \n",
+            "dtypes: int64(1), object(3)\n",
+            "memory usage: 6.1+ MB\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "From 43 columns we now have 4 that we would like to focus on. Now we can focus on catagorizing the Filed date and the Issued date, we want to squeeze them into a column to say \"aproved, not aproved\" to than give us our label for our classifier to learn from."
+      ],
+      "metadata": {
+        "id": "TosEhmc_ccP8"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def did_didnt(df, filler_col, new_col_name):\n",
+        "  approved_not_approved = df\n",
+        "# Create a new column with 1 if 'Issued Date' is not NaN, otherwise 0\n",
+        "  approved_not_approved[new_col_name] = np.where(approved_not_approved[filler_col].isna(), 0, 1)\n",
+        "  aproved = approved_not_approved[new_col_name]\n",
+        "  return approved_not_approved"
+      ],
+      "metadata": {
+        "id": "9mRfRjVRQaJc"
+      },
+      "execution_count": 44,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "\n",
+        "approved_not_approved = refined_data_frame[['Filed Date', 'Issued Date','Completed Date', 'Permit Type']]\n",
+        "# Create a new column with 1 if 'Issued Date' is not NaN, otherwise 0\n",
+        "approved_not_approved['Aproved'] = np.where(approved_not_approved['Issued Date'].isna(), 0, 1)\n",
+        "aproved = approved_not_approved['Aproved']\n",
+        "\n",
+        "\n",
+        "approved_not_approved"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 423
+        },
+        "id": "BD4Qxjo-cpCE",
+        "outputId": "3e6eb4f9-1cd9-41cc-f9d6-39e0c05ef2d7"
+      },
+      "execution_count": 22,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "        Filed Date Issued Date Completed Date  Permit Type  Aproved\n",
+              "0       05/06/2015  11/09/2015            NaN            4        1\n",
+              "1       04/19/2016  08/03/2017            NaN            4        1\n",
+              "2       05/27/2016         NaN            NaN            3        0\n",
+              "3       11/07/2016  07/18/2017     07/24/2017            8        1\n",
+              "4       11/28/2016  12/01/2017            NaN            6        1\n",
+              "...            ...         ...            ...          ...      ...\n",
+              "198895  12/05/2017  12/05/2017            NaN            8        1\n",
+              "198896  12/05/2017  12/06/2017            NaN            8        1\n",
+              "198897  12/06/2017  12/06/2017            NaN            8        1\n",
+              "198898  12/06/2017  12/06/2017            NaN            8        1\n",
+              "198899  12/07/2017  12/07/2017            NaN            8        1\n",
+              "\n",
+              "[198900 rows x 5 columns]"
+            ],
+            "text/html": [
+              "\n",
+              "  <div id=\"df-c6951c9d-67c3-420d-b47a-08ef793d89be\" class=\"colab-df-container\">\n",
+              "    <div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Filed Date</th>\n",
+              "      <th>Issued Date</th>\n",
+              "      <th>Completed Date</th>\n",
+              "      <th>Permit Type</th>\n",
+              "      <th>Aproved</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>05/06/2015</td>\n",
+              "      <td>11/09/2015</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>4</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>04/19/2016</td>\n",
+              "      <td>08/03/2017</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>4</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>05/27/2016</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>3</td>\n",
+              "      <td>0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>11/07/2016</td>\n",
+              "      <td>07/18/2017</td>\n",
+              "      <td>07/24/2017</td>\n",
+              "      <td>8</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>11/28/2016</td>\n",
+              "      <td>12/01/2017</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>6</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>...</th>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>198895</th>\n",
+              "      <td>12/05/2017</td>\n",
+              "      <td>12/05/2017</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>8</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>198896</th>\n",
+              "      <td>12/05/2017</td>\n",
+              "      <td>12/06/2017</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>8</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>198897</th>\n",
+              "      <td>12/06/2017</td>\n",
+              "      <td>12/06/2017</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>8</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>198898</th>\n",
+              "      <td>12/06/2017</td>\n",
+              "      <td>12/06/2017</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>8</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>198899</th>\n",
+              "      <td>12/07/2017</td>\n",
+              "      <td>12/07/2017</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>8</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "<p>198900 rows × 5 columns</p>\n",
+              "</div>\n",
+              "    <div class=\"colab-df-buttons\">\n",
+              "      \n",
+              "  <div class=\"colab-df-container\">\n",
+              "    <button class=\"colab-df-convert\" onclick=\"convertToInteractive('df-c6951c9d-67c3-420d-b47a-08ef793d89be')\"\n",
+              "            title=\"Convert this dataframe to an interactive table.\"\n",
+              "            style=\"display:none;\">\n",
+              "      \n",
+              "  <svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\" viewBox=\"0 -960 960 960\">\n",
+              "    <path d=\"M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z\"/>\n",
+              "  </svg>\n",
+              "    </button>\n",
+              "    \n",
+              "  <style>\n",
+              "    .colab-df-container {\n",
+              "      display:flex;\n",
+              "      gap: 12px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert {\n",
+              "      background-color: #E8F0FE;\n",
+              "      border: none;\n",
+              "      border-radius: 50%;\n",
+              "      cursor: pointer;\n",
+              "      display: none;\n",
+              "      fill: #1967D2;\n",
+              "      height: 32px;\n",
+              "      padding: 0 0 0 0;\n",
+              "      width: 32px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert:hover {\n",
+              "      background-color: #E2EBFA;\n",
+              "      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "      fill: #174EA6;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-buttons div {\n",
+              "      margin-bottom: 4px;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert {\n",
+              "      background-color: #3B4455;\n",
+              "      fill: #D2E3FC;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert:hover {\n",
+              "      background-color: #434B5C;\n",
+              "      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);\n",
+              "      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));\n",
+              "      fill: #FFFFFF;\n",
+              "    }\n",
+              "  </style>\n",
+              "\n",
+              "    <script>\n",
+              "      const buttonEl =\n",
+              "        document.querySelector('#df-c6951c9d-67c3-420d-b47a-08ef793d89be button.colab-df-convert');\n",
+              "      buttonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "\n",
+              "      async function convertToInteractive(key) {\n",
+              "        const element = document.querySelector('#df-c6951c9d-67c3-420d-b47a-08ef793d89be');\n",
+              "        const dataTable =\n",
+              "          await google.colab.kernel.invokeFunction('convertToInteractive',\n",
+              "                                                    [key], {});\n",
+              "        if (!dataTable) return;\n",
+              "\n",
+              "        const docLinkHtml = 'Like what you see? Visit the ' +\n",
+              "          '<a target=\"_blank\" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'\n",
+              "          + ' to learn more about interactive tables.';\n",
+              "        element.innerHTML = '';\n",
+              "        dataTable['output_type'] = 'display_data';\n",
+              "        await google.colab.output.renderOutput(dataTable, element);\n",
+              "        const docLink = document.createElement('div');\n",
+              "        docLink.innerHTML = docLinkHtml;\n",
+              "        element.appendChild(docLink);\n",
+              "      }\n",
+              "    </script>\n",
+              "  </div>\n",
+              "  \n",
+              "    </div>\n",
+              "  </div>\n",
+              "  "
+            ]
+          },
+          "metadata": {},
+          "execution_count": 22
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Cool now we have our label"
+      ],
+      "metadata": {
+        "id": "fozH3jmrfOvM"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# details = ProfileReport(approved_not_approved)\n",
+        "# details.to_notebook_iframe()"
+      ],
+      "metadata": {
+        "id": "iECUPHW5faFU"
+      },
+      "execution_count": 23,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "![image.png](data:image/png;base64,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)"
+      ],
+      "metadata": {
+        "id": "3AJDwBC5gt30"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Loos like our label is imbalanced?? ok Lets train anyway"
+      ],
+      "metadata": {
+        "id": "RjTIuXcShCq7"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "features = df[[\n",
+        "\n",
+        "    \"Estimated Cost\",  # 💰 Regression problem\n",
+        "    \"Permit Type\",  # 🏗️ Key category\n",
+        "    \"Number of Existing Stories\",\n",
+        "    \"Existing Use\",  # 🏢 Convert categorical values into numbers\n",
+        "    \"Existing Units\",  # 🔢 Discrete numbers\n",
+        "    \"Existing Construction Type\",  # 🔢 Discrete numbers\n",
+        "             ]]"
+      ],
+      "metadata": {
+        "id": "A-9N15FBO_ZX"
+      },
+      "execution_count": 37,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "featuresdf_no_nans = df.dropna()\n",
+        "X = featuresdf_no_nans\n",
+        "y = aproved\n",
+        "print(X.shape)\n",
+        "print(y.shape)\n"
+      ],
+      "metadata": {
+        "id": "J0QcdJFsF2RE",
+        "outputId": "5a413208-bbd7-4847-d8c9-27679da2a530",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 47,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "(0, 43)\n",
+            "(198900,)\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.preprocessing import LabelEncoder\n",
+        "from imblearn.under_sampling import RandomUnderSampler\n",
+        "from sklearn.linear_model import LogisticRegression\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report\n",
+        "import pandas as pd\n",
+        "\n",
+        "# Convert datetime columns to numerical format or encode categorical features\n",
+        "for col in X.select_dtypes(include=['object']):  # Check for object-type columns\n",
+        "    try:\n",
+        "        X[col] = pd.to_datetime(X[col])  # Convert to datetime\n",
+        "        X[col] = X[col].astype(int) // 10**9  # Convert to Unix timestamp (seconds)\n",
+        "    except ValueError:\n",
+        "        # If conversion fails, assume categorical and use label encoding\n",
+        "        le = LabelEncoder()\n",
+        "        X[col] = le.fit_transform(X[col])\n",
+        "\n",
+        "# Ensure the target variable y is binary (0/1)\n",
+        "y = LabelEncoder().fit_transform(y)  # Converts labels to 0 and 1\n",
+        "\n",
+        "# Resampling to handle class imbalance\n",
+        "undersampler = RandomUnderSampler(sampling_strategy='auto', random_state=42)\n",
+        "X_resampled, y_resampled = undersampler.fit_resample(X, y)\n",
+        "\n",
+        "# Train-test split\n",
+        "X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)\n",
+        "\n",
+        "# Train classification model\n",
+        "model = LogisticRegression()\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "# Predictions\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "# Evaluation metrics\n",
+        "accuracy = accuracy_score(y_test, y_pred)\n",
+        "precision = precision_score(y_test, y_pred)\n",
+        "recall = recall_score(y_test, y_pred)\n",
+        "f1 = f1_score(y_test, y_pred)\n",
+        "\n",
+        "# Print results\n",
+        "print(\"Sample Predictions:\", y_pred[:5])\n",
+        "print(\"Sample True Labels:\", y_test[:5])\n",
+        "print(\"\\nModel Performance Metrics:\")\n",
+        "print(f\"Accuracy: {accuracy:.4f}\")\n",
+        "print(f\"Precision: {precision:.4f}\")\n",
+        "print(f\"Recall: {recall:.4f}\")\n",
+        "print(f\"F1 Score: {f1:.4f}\")\n",
+        "print(\"\\nClassification Report:\")\n",
+        "print(classification_report(y_test, y_pred))\n"
+      ],
+      "metadata": {
+        "id": "FVVxsm8FE1F6",
+        "outputId": "38dd567b-d1f0-49e4-9432-4411008a8859",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 356
+        }
+      },
+      "execution_count": 38,
+      "outputs": [
+        {
+          "output_type": "error",
+          "ename": "ValueError",
+          "evalue": "Found array with 0 sample(s) while a minimum of 1 is required.",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mValueError\u001b[0m                                Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-38-ba925d684e09>\u001b[0m in \u001b[0;36m<cell line: 0>\u001b[0;34m()\u001b[0m\n\u001b[1;32m     21\u001b[0m \u001b[0;31m# Resampling to handle class imbalance\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     22\u001b[0m \u001b[0mundersampler\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mRandomUnderSampler\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0msampling_strategy\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m'auto'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mrandom_state\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;36m42\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 23\u001b[0;31m \u001b[0mX_resampled\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my_resampled\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mundersampler\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mfit_resample\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     24\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     25\u001b[0m \u001b[0;31m# Train-test split\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.11/dist-packages/imblearn/base.py\u001b[0m in \u001b[0;36mfit_resample\u001b[0;34m(self, X, y, **params)\u001b[0m\n\u001b[1;32m    200\u001b[0m             \u001b[0mThe\u001b[0m \u001b[0mcorresponding\u001b[0m \u001b[0mlabel\u001b[0m \u001b[0mof\u001b[0m\u001b[0;31m \u001b[0m\u001b[0;31m`\u001b[0m\u001b[0mX_resampled\u001b[0m\u001b[0;31m`\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    201\u001b[0m         \"\"\"\n\u001b[0;32m--> 202\u001b[0;31m         \u001b[0;32mreturn\u001b[0m \u001b[0msuper\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mfit_resample\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mparams\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    203\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    204\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0m_more_tags\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.11/dist-packages/sklearn/base.py\u001b[0m in \u001b[0;36mwrapper\u001b[0;34m(estimator, *args, **kwargs)\u001b[0m\n\u001b[1;32m   1387\u001b[0m                 )\n\u001b[1;32m   1388\u001b[0m             ):\n\u001b[0;32m-> 1389\u001b[0;31m                 \u001b[0;32mreturn\u001b[0m \u001b[0mfit_method\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mestimator\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkwargs\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   1390\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1391\u001b[0m         \u001b[0;32mreturn\u001b[0m \u001b[0mwrapper\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.11/dist-packages/imblearn/base.py\u001b[0m in \u001b[0;36mfit_resample\u001b[0;34m(self, X, y, **params)\u001b[0m\n\u001b[1;32m     97\u001b[0m         \u001b[0mcheck_classification_targets\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0my\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     98\u001b[0m         \u001b[0marrays_transformer\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mArraysTransformer\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 99\u001b[0;31m         \u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mbinarize_y\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_check_X_y\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    100\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    101\u001b[0m         self.sampling_strategy_ = check_sampling_strategy(\n",
+            "\u001b[0;32m/usr/local/lib/python3.11/dist-packages/imblearn/under_sampling/_prototype_selection/_random_under_sampler.py\u001b[0m in \u001b[0;36m_check_X_y\u001b[0;34m(self, X, y)\u001b[0m\n\u001b[1;32m    100\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0m_check_X_y\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    101\u001b[0m         \u001b[0my\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mbinarize_y\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mcheck_target_type\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0my\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mindicate_one_vs_all\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;32mTrue\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 102\u001b[0;31m         \u001b[0mX\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0m_check_X\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mX\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    103\u001b[0m         \u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mvalidate_data\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mX\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0my\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mreset\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;32mTrue\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mskip_check_array\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;32mTrue\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    104\u001b[0m         \u001b[0;32mreturn\u001b[0m \u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mbinarize_y\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.11/dist-packages/imblearn/utils/_validation.py\u001b[0m in \u001b[0;36m_check_X\u001b[0;34m(X)\u001b[0m\n\u001b[1;32m    639\u001b[0m     \u001b[0mn_samples\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0m_num_samples\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mX\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    640\u001b[0m     \u001b[0;32mif\u001b[0m \u001b[0mn_samples\u001b[0m \u001b[0;34m<\u001b[0m \u001b[0;36m1\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 641\u001b[0;31m         raise ValueError(\n\u001b[0m\u001b[1;32m    642\u001b[0m             \u001b[0;34mf\"Found array with {n_samples} sample(s) while a minimum of 1 is required.\"\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    643\u001b[0m         )\n",
+            "\u001b[0;31mValueError\u001b[0m: Found array with 0 sample(s) while a minimum of 1 is required."
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "\n",
+        "def catergorize_my(column):\n",
+        "  catagorized_data = df[list_of_features].astype('category')\n",
+        "  return catagorized_data\n",
+        "\n",
+        "def count_histogram_my(column):\n",
+        "  new = catergorize_my(column)\n",
+        "  new.hist(bins=30, edgecolor='red')\n",
+        "  plt.hist(column, bins=5)\n",
+        "  plt.title('Histogram of Values')\n",
+        "  plt.xlabel('Value')\n",
+        "  plt.ylabel('Frequency')\n",
+        "  plt.xticks(rotation=45)\n",
+        "  plt.show()\n",
+        "\n",
+        "#we want a method to return the data back to use without nun values\n",
+        "def not_nulls(list):\n",
+        "  not_nuns = [item for item in list if item is not None]\n",
+        "  return not_nuns\n",
+        "\n",
+        "\n",
+        "def set():\n",
+        "  df = pd.read_csv(data_file_path)\n",
+        "  return df\n",
+        "\n",
+        "def stack(list):\n",
+        "  data_frame_stack = df[list]\n",
+        "  return data_frame_stack\n",
+        "\n",
+        "\n",
+        "def fill_null_with(df, feat_null, feat_filler):\n",
+        "    df.loc[df[feat_null].isnull(), feat_null] = df[feat_filler]\n"
+      ],
+      "metadata": {
+        "id": "nXEJvVTkbkWG"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def count_plot(data_frame, feature, x_figure):\n",
+        "  catagorized = data_frame[feature].astype('category')\n",
+        "  catagorized\n",
+        "  plt.figure(figsize=(x_figure, 6))  # Widen the plot\n",
+        "  plt.xticks(rotation=35)  # Rotate labels by 45 degrees\n",
+        "  sns.countplot(x=feature, data=data_frame)"
+      ],
+      "metadata": {
+        "id": "nZe9KJx0vnSD"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
